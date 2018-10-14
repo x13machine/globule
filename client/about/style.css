@@ -1,0 +1,40 @@
+html, body {
+	margin: 0;
+	color: #fff;
+	background: url(/imgs/background.png);
+	background-position: center;
+	text-align:center;
+	padding:10px;
+}
+
+#content{
+	width: 50%;
+	margin: 10px auto 10px auto;
+	background:rgba(13,13,13,0.6);
+	border:1px #222 solid;
+}
+
+h1{
+	letter-spacing: 3px;
+	color: #000;
+	text-shadow: 0 0 25px #F00,0 0 25px #F00;
+	margin:0;
+	font-size: 60px;
+}
+
+*{
+	font-family: 'Fjalla One', sans-serif;
+}
+
+a *,a{
+	text-decoration: none;
+}
+
+@font-face {
+	font-family: 'Fjalla One';
+	font-style: normal;
+	font-weight: 400;
+	src: local('Fjalla One'), local('FjallaOne-Regular'), url(/fonts/font2.woff2) format('woff2');
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
+}
+
