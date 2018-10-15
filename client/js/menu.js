@@ -30,4 +30,45 @@ $('#nick').onkeypress = function(e){
 }
 
 $('#nick').value = sessionStorage.nick || '';
-$('#color').value = sessionStorage.color || '#0000FF';
+
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+colorPickerInput(sessionStorage.color || getRandomInt(0,360));
+
+function colorPickerInput(x){
+	var canvas = $('#colorPicker');
+	var ctx = canvas.getContext('2d');
+	
+	for(var i=0;i < canvas.width;i++){
+		ctx.beginPath();
+		ctx.rect(i, 0, 1, canvas.height);
+		ctx.fillStyle = a2c(i * 2);
+		ctx.fill();
+	}
+	ctx.lineWidth = 5;
+	ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+	ctx.beginPath();
+	ctx.moveTo(x / 2, 0);
+	ctx.lineTo(x / 2, canvas.width);
+	ctx.stroke();
+	
+	var color = a2c(x);
+	$('#colorNum').value = x;
+	$('#colorNum').style.color = color;
+	sessionStorage.color = x;
+}
+
+$('#colorPicker').onmousemove = function(data){
+	if(data.buttons==1)colorPickerInput(data.offsetX * 2);
+}
+
+$('#colorPicker').onclick = function(data){
+	colorPickerInput(data.offsetX * 2);
+}
+
+$('#colorNum').oninput = function(){
+	this.value = Math.max(0,Math.min(360,Math.floor(this.value)));
+	colorPickerInput(this.value);
+}

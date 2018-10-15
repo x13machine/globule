@@ -1,11 +1,11 @@
 {
-	"dependencies":{
-		"ws":"1.1.x",
-		"express":"3.13.x",
-		"request":"2.72.x",
-		"node-json-minify": "1.0.x"
-	},
-	"scripts":{
-		"start": "node server/server.js"
-	}
+  "dependencies": {
+    "express": "^3.13.0",
+    "node-json-minify": "^1.0.0",
+    "request": "^2.72.0",
+    "ws": "^1.1.5"
+  },
+  "scripts": {
+    "start": "node server/server.js"
+  }
 }

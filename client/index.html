@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Globule.io</title>
+		<title>Globule</title>
 			
 		<link rel="stylesheet" href="css/style.css">
 		<meta charset="UTF-8">
-		<meta name="description" content="Globule.io is a multiplayer game where you absorb smaller globs and avoid bigger globs.">
-		<meta name="keywords" content="html5,game,globule,multiplayer,casual">
+		<meta name="description" content="Globule is a multiplayer game where you absorb smaller globs and avoid bigger globs.">
 		<meta name="author" content="Googolplexking">
 	</head>
 	<body>
@@ -21,9 +20,10 @@
 			
 			<div id="menu">
 				<div id='colorDiv'>
-					Color: <input id='color' type='color' value='#0000FF'>
+					<canvas id='colorPicker' width='180' height='20'></canvas>
+					<input id='colorNum' type='number' min='0' max='360'>
 				</div>
-				<h1>Globule.io</h1>
+				<h1>Globule</h1>
 				<p class="quotes">Point and click to move</p>
 				<p class="quotes">Absorb globs that are smaller than you</p>
 				<p class="quotes">Fear globs that are bigger than you</p>			
@@ -35,11 +35,15 @@
 				<div id="connecting">
 					Connecting Please Wait...
 				</div>
-				
+							
+
 			
 			</div>
-			
-			<div id='online'></div>
+
+			<div id='links'>
+				<a href='https://brandanwaldvogel.com'>Main Page</a> | 
+				<a href='/about'>About/Credits</a>
+			</div>
 		</div>
 		<div id='game'>
 			<canvas id='canvas'></canvas>
@@ -69,6 +73,7 @@
 		<script src="common/bison.js"></script>
 		<script src="common/game.js"></script>
 		<script src="common/glob.js"></script>
+		<script src="common/colors.js"></script>
 		<script src="js/functions.js"></script>
 		<script src="js/network.js"></script>
 		<script src="js/render.js"></script>

@@ -1,21 +1,23 @@
 global.login = function(socket,data){
+	console.log(data)
 	if(typeof data != 'object' || typeof data.name != "string" ||
-	!validNumber(data.w,0,100000) || !validNumber(data.h,0,100000) ||
-	!validNumber(data.r,0,255) || !validNumber(data.g,0,255) || !validNumber(data.b,0,255)){
+	!validNumber(data.w,0,100000) || !validNumber(data.h,0,100000) || !validNumber(data.c,0,360)){
 		socket.ws.close();
 		return ;
 	}
 	
+	console.log('here?')
 	var name = data.name.substr(0,30);//limit to 30 characters
 	
 	var name = name.replace(/[^\x00-\x7F]/g, "");//remove non-ascii characters
 	
 	var name = name.replace(/(^\s*)|(\s*$)/gi,"").replace(/[ ]{2,}/gi," ").replace(/\n /,"\n"); //remove whitespace
-	
+	console.log(data.c)
+	var color = HSVtoRGB(1/360*data.c,1,1)
 	var client = {
 		uuid: uuid(),
 		name: name.toUpperCase(),
-		color: [~~data.r, ~~data.g, ~~data.b],
+		color: color,
 		cam:{
 			x: 0,
 			y: 0,

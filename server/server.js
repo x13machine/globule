@@ -31,6 +31,7 @@ global.wss = new WebSocketServer({
 server.listen(process.env.PORT || config.port || 8080, process.env.HOST || config.host || '0.0.0.0');
 
 //load the main game code
+require('../client/common/colors.js');
 require('../client/common/bison.js');
 require('../client/common/optcodes.js');
 require('../client/common/game.js');

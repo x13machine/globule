@@ -9,9 +9,7 @@ function start(){
 
 function begin(mode){
 	var name=$('#nick').value;
-	var colour = $('#color').value;
 	sessionStorage.nick=name;
-	sessionStorage.color=colour;
 	$('#game').style.display = 'block';
 	$('#home').style.display = 'none';
 	$('#canvas').style.display = 'block';
@@ -26,17 +24,13 @@ function begin(mode){
 	window.render = new CanvasRenderer(game);
 	// Start the renderer.
 	render.render();
-	
-	var color = hexToRgb(colour);
-	
+		
 	socket.ws.onopen = function(){
 		socket.emit(optCodes['login'],{
 			name:name,
 			w: innerWidth,
 			h: innerHeight,
-			r: color.r,
-			g: color.g,
-			b: color.b,
+			c: sessionStorage.color * 1
 		});
 	}
 	
