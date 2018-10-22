@@ -1,7 +1,7 @@
 # Globule
 Globule is an online mutpliplayer game written in javascript/node.js.
 
-# install
+# Install
     npm install
-# start
+# Start
     npm start
