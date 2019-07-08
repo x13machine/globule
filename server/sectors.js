@@ -1,16 +1,20 @@
-global.sectorTick = function(){
+var collision = require('./collision');
+var {game} = require('../shared/game');
+var network = require('./network');
+
+function sectorTick(){
 	var globs = game.state.globs;
-	for(var i in game.sockets){
+	for(let i in game.sockets){
 		var socket = game.sockets[i];
 		var client = socket.cli;
 		
 		//clear data
-		for(var z in socket.prevBlocks){
+		for(let z in socket.prevBlocks){
 			delete game.listeners[socket.prevBlocks[z]][client.uuid]; 
 		}
 		socket.prevBlocks = [];
 		//get visible space
-		var cells = rect2cells({
+		var cells = collision.rect2cells({
 			x: Math.min(Math.max(client.cam.x - client.cam.w / 2, 0), game.settings.width - client.cam.w),
 			y: Math.min(Math.max(client.cam.y - client.cam.h / 2, 0), game.settings.height - client.cam.h),
 			w: client.cam.w,
@@ -21,11 +25,11 @@ global.sectorTick = function(){
 		var visible = [];
 		if(game.state.globs[i])visible.push(i);
 		
-		for(var z in cells){
+		for(let z in cells){
 			var cord = cells[z].x+'_'+cells[z].y;
 			socket.prevBlocks.push(cord);
 			game.listeners[cord] = game.listeners[cord] || {};
-			game.listeners[cord][client.uuid] = socket
+			game.listeners[cord][client.uuid] = socket;
 			if(game.blockCall[cord])visible = visible.concat(Object.keys(game.blockCall[cord]));
 		}
 		
@@ -35,17 +39,17 @@ global.sectorTick = function(){
 		});
 		
 		//send leaves
-		for(var z in socket.lastVisible){
-			var uuid = socket.lastVisible[z];
+		for(let z in socket.lastVisible){
+			let uuid = socket.lastVisible[z];
 			if(visible.indexOf(uuid) != -1)continue;
-			sendLeave(uuid,socket);
+			network.sendLeave(uuid,socket);
 		}
 		
 		//send joins
-		for(var z in visible){
-			var uuid = visible[z];
+		for(let z in visible){
+			let uuid = visible[z];
 			if(socket.lastVisible.indexOf(uuid) != -1)continue;
-			sendJoin(globs[uuid],{
+			network.sendJoin(globs[uuid],{
 				socket:socket,
 				append:true
 			});
@@ -55,3 +59,5 @@ global.sectorTick = function(){
 		socket.loaded = true;
 	}
 }
+
+module.exports = sectorTick;

@@ -1,63 +1,21 @@
-wss.on('connection', function(ws) {
-	var socket = {
-		messages:[],
-		callbacks:{},
-		ws: ws,
-		call: function(type,data){
-			var callback = socket.callbacks[type];
-			if(callback)callback(data);
-		},
-		on: function(type,callback){
-			socket.callbacks[type]=callback;
-		},
-		append: function(a,b){
-			b = b || null;
-			//console.log('type',getKeyByValue(optCodes,a));
-			if(a !== undefined)socket.messages = socket.messages.concat([a,b]);
-		},
-		emit: function(a,b){
-			b = b || null;
-			
-			if(a !== undefined)socket.messages = socket.messages.concat([a,b]);
-			
-			if(socket.messages.length == 0)return;
-			var data = BISON.encode(socket.messages);
-			
-			ws.send(data,function(){});
-			
-			var m = socket.messages.slice();
-			socket.messages = [];
-			return m;
-		}
-	}
+var config = require('../config');
+var optCodes = require('../shared/optCodes');
+var {game} = require('../shared/game');
 
-	connection(socket);
+function localBroadcast(cords,type,message,append,loaded){
 	
-	ws.on('message', function(message) {
-		
-		var data = BISON.decode(message);
-		if(!Array.isArray(data) || data.length % 2 == 1)return;
-		for(var i=0;i<data.length;i+=2){
-			socket.call(data[i],data[i+1]);
-		}
-	});
-});
-
-
-global.localBroadcast = function(cords,type,message,append,loaded){
-	
-	for(var i in cords){
+	for(let i in cords){
 		var sockets = game.listeners[cords[i].x+'_'+cords[i].y];
 
 		if(!sockets)return ;
-		for(var z in sockets){
+		for(let z in sockets){
 			if(!loaded || sockets[z].loaded)(append ? sockets[z].append : sockets[z].emit)(type,message);
 		}
 	}
 }
 
-global.sendJoin = function(glob,info){
-	var info = info || {};
+function sendJoin(glob,info){
+	info = info || {};
 	var data = {
 		c: glob.color,
 		u: glob.uuid,
@@ -67,7 +25,7 @@ global.sendJoin = function(glob,info){
 		t: glob.type,
 		x: Math.round(glob.x),
 		y: Math.round(glob.y)
-	}
+	};
 	
 	if(glob.name)data.name=glob.name;
 	
@@ -79,18 +37,18 @@ global.sendJoin = function(glob,info){
 	localBroadcast(glob.toCells(config.game.blockSize),optCodes['join'],data,info.append);
 }
 
-global.sendRemap = function(glob){
+function sendRemap(glob){
 	var data = {
 		u: glob.uuid,
 		x: Math.round(glob.x),
 		y: Math.round(glob.y),
 		r: glob.r,
-	}
+	};
 	
 	localBroadcast(glob.toCells(config.game.blockSize),optCodes['remap'],data,true,true);
 }
 
-global.sendShoot = function(glob){
+function sendShoot(glob){
 	var data = {
 		u: glob.uuid,
 		x: Math.round(glob.x),
@@ -98,12 +56,19 @@ global.sendShoot = function(glob){
 		X: Math.round(glob.vx),
 		Y: Math.round(glob.vy),
 		r: glob.r,
-	}
+	};
 	
 	localBroadcast(glob.toCells(config.game.blockSize),optCodes['shoot'],data,true);
 }
 
-global.sendLeave = function(data,socket){
+function sendLeave(data,socket){
 	var uuid = typeof data == 'string' ? data : data.uuid;
 	socket.append(optCodes['leave'],uuid);
 }
+
+module.exports = {
+	sendJoin: sendJoin,
+	sendRemap: sendRemap,
+	sendShoot: sendShoot,
+	sendLeave: sendLeave
+};

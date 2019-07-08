@@ -1,43 +1,49 @@
+var config = require('../config');
+var {game} = require('../shared/game');
+var stats = require('./stats');
+var network = require('./network');
+var sectorTick = require('./sectors');
+
 setInterval(function(){
 	var sockets = game.sockets;
 	game.update();
 	var globs = game.state.globs;
 	
 	//process collisions
-	var cols = globIntersectList(globs);
-	for(var i in cols){
+	var cols = game.globIntersectList(globs);
+	for(let i in cols){
 		var cos = cols[i];
 		
 		if(!(cos[0].uuid in globs) || !(cos[1].uuid in globs) || !cos[0].transferAreas(cos[1]))continue;
-		sendRemap(cos[0]);
+		network.sendRemap(cos[0]);
 		
 		if(cos[0].uuid != cos[1].lastContactID){
 			cos[1].rating = cos[1].r / 2;
 			cos[1].lastContactID = cos[0].uuid;
 		}
 		
-		if(cos[1].r<game.settings.minRaduis){
-			updateRating(cos[0].uuid,cos[1].uuid);
+		if(cos[1].r<game.settings.minRadius){
+			stats.updateRating(cos[0].uuid,cos[1].uuid);
 			game.leave(cos[1]);
 			continue;
 		}
-		sendRemap(cos[1]);
+		network.sendRemap(cos[1]);
 	}
 	
 	
 	var mass = 0;
 	var masses = [];
-	for(var i in globs){
+	for(let i in globs){
 		var glob = globs[i];
 		
 		//kill glob that below minium radius
-		if(glob.r<game.settings.minRaduis){
+		if(glob.r<game.settings.minRadius){
 			game.leave(glob);
 			continue;
 		}
 		
 		//delete old sectors
-		for(var z in glob.callings){
+		for(let z in glob.callings){
 			delete game.blockCall[glob.callings[z]][glob.uuid];
 		}
 		
@@ -45,7 +51,7 @@ setInterval(function(){
 		
 		//figure what sectors the glob is in.
 		var cells = glob.toCells(config.game.blockSize);
-		for(var z in cells){
+		for(let z in cells){
 			var cell = cells[z];
 			var cord = cell.x+'_'+cell.y;
 			glob.callings.push(cord);
@@ -62,8 +68,8 @@ setInterval(function(){
 	
 	//add new globs
 	for(;game.settings.maxGlobs > Object.keys(globs).length && game.settings.maxMass > mass;){
-		var glob = game.append('glob');
-		sendJoin(glob,{
+		let glob = game.append('glob');
+		network.sendJoin(glob,{
 			append: true
 		});
 		mass+=glob.r.toArea();
@@ -71,7 +77,7 @@ setInterval(function(){
 	
 	sectorTick();
 	
-	for(var i in sockets){
+	for(let i in sockets){
 		sockets[i].emit();
 	}
 },1000/config.game.tps);

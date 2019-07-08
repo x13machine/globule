@@ -1,21 +1,25 @@
-global.login = function(socket,data){
-	console.log(data)
-	if(typeof data != 'object' || typeof data.name != "string" ||
-	!validNumber(data.w,0,100000) || !validNumber(data.h,0,100000) || !validNumber(data.c,0,360)){
+var optCodes = require('../shared/optCodes');
+var utils = require('./utils');
+var stats = require('./stats');
+var config = require('../config');
+var game = require('./game');
+
+function login(socket,data){
+	if(typeof data != 'object' || typeof data.name != 'string' ||
+	!utils.validNumber(data.w,0,100000) || !utils.validNumber(data.h,0,100000) || !utils.validNumber(data.c,0,360)){
 		socket.ws.close();
 		return ;
 	}
 	
-	console.log('here?')
 	var name = data.name.substr(0,30);//limit to 30 characters
 	
-	var name = name.replace(/[^\x00-\x7F]/g, "");//remove non-ascii characters
+	name = name.replace(/[^ -`]/g, '');//remove non-ascii characters
 	
-	var name = name.replace(/(^\s*)|(\s*$)/gi,"").replace(/[ ]{2,}/gi," ").replace(/\n /,"\n"); //remove whitespace
-	console.log(data.c)
-	var color = HSVtoRGB(1/360*data.c,1,1)
+	name = name.replace(/(^\s*)|(\s*$)/gi,'').replace(/[ ]{2,}/gi,' ').replace(/\n /,'\n'); //remove whitespace
+	console.log(data.c);
+	var color = utils.HSVtoRGB(1/360*data.c,1,1);
 	var client = {
-		uuid: uuid(),
+		uuid: utils.uuid(),
 		name: name.toUpperCase(),
 		color: color,
 		cam:{
@@ -24,7 +28,7 @@ global.login = function(socket,data){
 			w: Math.min(data.w + config.game.addDim, config.game.maxDim),
 			h: Math.min(data.h + config.game.addDim, config.game.maxDim)
 		}
-	}
+	};
 	
 	socket.cli = client;
 	game.sockets[client.uuid] = socket;
@@ -32,10 +36,10 @@ global.login = function(socket,data){
 	console.log('join',new Date(),socket.ws.upgradeReq.connection.remoteAddress,client.name);
 	// When client connects, dump game state
 	
-	socket.append(optCodes['leaderboard'],board);
-	socket.append(optCodes['players'],board.length);
+	socket.append(optCodes['leaderboard'],stats.board);
+	socket.append(optCodes['players'], stats.board.length);
 	
-	var m = socket.emit(optCodes['start'], {
+	socket.emit(optCodes['start'], {
 		name:client.name,
 		uuid:client.uuid,
 		settings: game.settings
@@ -43,7 +47,7 @@ global.login = function(socket,data){
 	
 	// Client shoots
 	socket.on(optCodes['shoot'], function(data) {
-		if(!game.state.globs[client.uuid] || typeof data != 'object' || !validNumber(data.direction,-100,100))return ;
+		if(!game.state.globs[client.uuid] || typeof data != 'object' || !utils.validNumber(data.direction,-100,100))return ;
 		game.shoot(client.uuid, data.direction);
 	});
 	
@@ -59,7 +63,7 @@ global.login = function(socket,data){
 	
 	socket.on(optCodes['state'], function() {
 		socket.lastVisible = [];
-		for(var z in socket.prevBlocks){
+		for(let z in socket.prevBlocks){
 			delete game.listeners[socket.prevBlocks[z]][client.uuid]; 
 		}
 		
@@ -70,13 +74,13 @@ global.login = function(socket,data){
 	});
 	
 	socket.on(optCodes['cam'], function(data) {
-		if(typeof data != 'object' || !validNumber(data.x,0,config.game.width) || !validNumber(data.y,0,config.game.height))return ;
+		if(typeof data != 'object' || !utils.validNumber(data.x,0,config.game.width) || !utils.validNumber(data.y,0,config.game.height))return ;
 		client.cam.x = data.x;
 		client.cam.y = data.y;
 	});
 	
 	socket.on(optCodes['land'], function(data) {
-		if(!validNumber(data.w,0,100000) || !validNumber(data.h,0,100000))return;
+		if(!utils.validNumber(data.w,0,100000) || !utils.validNumber(data.h,0,100000))return;
 		client.cam.w = Math.min(data.w + config.game.addDim, config.game.maxDim);
 		client.cam.h = Math.min(data.h + config.game.addDim, config.game.maxDim);
 	});
@@ -97,8 +101,8 @@ global.login = function(socket,data){
 		socket.chatQ = true;
 	});
 	
-	socket.on(optCodes['chatC'], function(data) {
-		for(var i in chatQ){
+	socket.on(optCodes['chatC'], function() {
+		for(let i in chatQ){
 			if(chatQ[i].id == client.uuid)chatQ.splice(i,1);
 		}
 		
@@ -108,7 +112,7 @@ global.login = function(socket,data){
 	});
 	
 	socket.ws.on('close', function() {
-		for(var z in socket.prevBlocks){
+		for(let z in socket.prevBlocks){
 			delete game.listeners[socket.prevBlocks[z]][client.uuid]; 
 		}
 		
@@ -132,7 +136,7 @@ function chatTick(){
 		return ;
 	}
 	
-	for(var i in game.sockets){
+	for(let i in game.sockets){
 		var socket = game.sockets[i];
 		socket.append(optCodes['chat'],{
 			'n': game.sockets[mess.id].cli.name,
@@ -146,9 +150,9 @@ function chatTick(){
 	
 	chatQ.splice(0,1);
 	
-	for(var i in chatQ){
-		var mess = chatQ[i];
-		var socket = game.sockets[mess.id];
+	for(let i in chatQ){
+		let mess = chatQ[i];
+		let socket = game.sockets[mess.id];
 		if(!socket){
 			chatQ.splice(i,1);
 			continue;
@@ -159,3 +163,5 @@ function chatTick(){
 }
 
 setInterval(chatTick,1000);
+
+module.exports = login;

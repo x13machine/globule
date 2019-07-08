@@ -1,3 +1,5 @@
+var BISON = require('bison');
+
 function connect(host){
 	var uri = (location.protocol == 'http:' ? 'ws://': 'wss://') + (host  || location.host);
 	
@@ -24,16 +26,18 @@ function connect(host){
 			ws.send(BISON.encode(socket.messages));
 			socket.messages = [];
 		}
-	}
+	};
 	
 	ws.onmessage = function(message) {
 		var data = BISON.decode(message.data);
 		
 		if(!Array.isArray(data) || data.length % 2 == 1)return;
-		for(var i=0;i<data.length;i+=2){
+		for(let i=0;i<data.length;i+=2){
 			socket.call(data[i],data[i+1]);
 		}
-	}
+	};
 	
 	return socket;
 }
+
+module.exports = connect;
