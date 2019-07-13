@@ -11,11 +11,10 @@
 	"rating":9,
 	"login":10,
 	"players":11,
-	"percentile":12,
-	"rank":13,
-	"closeMsg":14,
-	"chat":15,
-	"chatQ":16,
-	"chatE":17,
-	"chatC":18
+	"rank":12,
+	"closeMsg":13,
+	"chat":14,
+	"chatQ":15,
+	"chatE":16,
+	"chatC":17
 }

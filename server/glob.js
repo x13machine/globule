@@ -1,7 +1,7 @@
-var sharedGlob = require('../shared/glob');
-var collision = require('./collision');
-var config = require('../config');
-var {game} = require('../shared/game');
+import sharedGlob from '../shared/glob';
+import collision from './collision';
+import config from '../config';
+import {game} from './game';
 
 class Glob extends sharedGlob {
 	transferArea(area) {
@@ -68,4 +68,4 @@ class Glob extends sharedGlob {
 }
 
 
-module.exports = Glob;
+export default Glob;

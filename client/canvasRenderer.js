@@ -1,5 +1,4 @@
-var optCodes = require('../shared/optCodes');
-var {requestAnimFrame} = require('utils');
+import {requestAnimFrame} from 'utils';
 
 class CanvasRenderer{
 	mapCord = {
@@ -75,7 +74,7 @@ class CanvasRenderer{
 		}
 		
 		if(changed && new Date().getTime() - this.lastCamUpdate > this.game.settings.maxCamUpdate * 1000){
-			this.game.socket.emit(optCodes['cam'],{
+			this.game.socket.emit('cam',{
 				x: Math.round(this.canvas.width / 2 / this.zoom + this.mapCord.x),
 				y: Math.round(this.canvas.height / 2 / this.zoom + this.mapCord.y)
 			});
@@ -98,12 +97,8 @@ class CanvasRenderer{
 		if(!Number.isFinite(this.zoom))this.zoom = 1;
 	}
 	
-	render() {
-		var ctx = this;
-		
-		requestAnimFrame(() => {
-			ctx.render.call(ctx);
-		});
+	render() {		
+		requestAnimFrame(this.render);
 		
 		if(!this.started)return ;
 		
@@ -114,7 +109,7 @@ class CanvasRenderer{
 		var delta=this.game.update();
 	
 		if(delta>this.game.settings.maxDelta){
-			this.game.socket.emit(optCodes['state']);
+			this.game.socket.emit('state');
 		}
 		
 		var player = this.game.state.globs[this.this.game.uuid];
@@ -226,5 +221,5 @@ class CanvasRenderer{
 	}
 }
 
-module.exports = CanvasRenderer;
+export default CanvasRenderer;
 

@@ -1,6 +1,6 @@
-var config = require('../config');
-var optCodes = require('../shared/optCodes');
-var {game} = require('../shared/game');
+import config from '../config';
+import optCodes from '../shared/optCodes';
+import {game} from '../shared/game';
 
 function localBroadcast(cords,type,message,append,loaded){
 	
@@ -66,7 +66,7 @@ function sendLeave(data,socket){
 	socket.append(optCodes['leave'],uuid);
 }
 
-module.exports = {
+export default {
 	sendJoin: sendJoin,
 	sendRemap: sendRemap,
 	sendShoot: sendShoot,

@@ -1,5 +1,5 @@
 var collision = require('./collision');
-var {game} = require('../shared/game');
+var {game} = require('./game');
 var network = require('./network');
 
 function sectorTick(){
@@ -60,4 +60,4 @@ function sectorTick(){
 	}
 }
 
-module.exports = sectorTick;
+export default sectorTick;

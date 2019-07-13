@@ -1,9 +1,8 @@
 
-var config = require('../config');
-var sharedGame = require('../shared/game').Game;
-var Glob = require('./glob');
-var utils = require('./utils');
-var network = require('./network');
+import config from '../config';
+import Glob from './glob';
+import network from './network';
+import {sharedGame} from '../shared/game';
 
 class Game extends sharedGame {
 	shoot(playerUUID, direction) {
@@ -133,4 +132,7 @@ class Game extends sharedGame {
 	}
 }
 
-module.exports = Game;
+export default {
+	Game:Game,
+	game: new Game()
+};

@@ -1,5 +1,6 @@
 
-var main = {
+
+const main = {
 	resolve: {
 		extensions: ['.js','.jsx']
 	},
@@ -8,22 +9,23 @@ var main = {
 	module: {
 		rules: [
 			{
-				test: /\.jsx$/,
+				test: /\.jsx?$/,
 				use: {
 					loader: 'babel-loader'
 				}
 			}
 		]
-	}
+	},
 };
 
-module.exports  =[
+module.export = [
 	Object.assign({}, main,{
 		output: {
-			filename: './static/js/main.js',
+			path: __dirname + '/static',
+			filename: './js/index.js',
 		},
 		entry: [
-			'./client/main.jsx',
+			'./client/index.jsx',
 		]
 	}),
 ];

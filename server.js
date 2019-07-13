@@ -1,24 +1,17 @@
-var BISON = require('bison');
-var fs = require('fs');
-var config = require('./config');
-var express = require('express');
-var optCodes = require('./shared/optCodes');
-var login = require('./server/socket');
+import BISON from 'bison';
+import fs from 'fs';
+import config from './config';
+import express from 'express';
+import optCodes from './shared/optCodes.json';
+import login from './server/socket';
+import http from 'http';
+
 //init http server
 var app = express();
-var server;
-
-if(config.https){
-	server = require('https').createServer({
-		key: fs.readFileSync('../key.pem'),
-		cert: fs.readFileSync('../cert.pem')
-	}, app);
-}else{
-	server = require('http').createServer(app);
-}
+var server = http.createServer(app);
 
 //server files
-app.use(express.static('client'));
+app.use(express.static('static'));
 
 //start the websocket server
 var WebSocketServer = require('ws').Server;
@@ -77,17 +70,14 @@ server.listen(process.env.PORT || config.port || 8080, process.env.HOST || confi
 
 //load the main game code
 require('./shared/colors');
-var gameMain = require('./shared/game');
-var Game = require('./server/game');
-gameMain.game = new Game(config.game);
+var gameMain = require('./server/game');
+gameMain.game = new gameMain.Game(config.game);
 
 //load the server side game code
 require('./server/collision');
 require('./server/tick');
 require('./server/network');
 require('./server/sectors');
-require('./server/stats');
-require('./server/socket');
 
 function connection(socket) {
 	if(config.max <= Object.keys(gameMain.game.sockets).length){

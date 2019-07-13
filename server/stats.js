@@ -1,5 +1,5 @@
-var optCodes = require('../shared/optCodes');
-var {game} =require('../shared/game');
+import optCodes from '../shared/optCodes.json';
+var {game} =require('./game');
 var config = require('../config');
 
 var state = {
@@ -71,4 +71,4 @@ function sendStats(){
 
 setInterval(sendStats,config.game.statUpdate);
 
-module.exports = state;
+export default state;

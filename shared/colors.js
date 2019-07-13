@@ -53,7 +53,7 @@ function a2c(a){
 	return '#' + x2c(a);
 }
 
-module.exports = {
+export default {
 	hexToRgb: hexToRgb,
 	componentToHex: componentToHex,
 	rgbToHex: rgbToHex,

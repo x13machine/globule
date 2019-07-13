@@ -1,5 +1,5 @@
 var config = require('../config');
-var {game} = require('../shared/game');
+var {game} = require('./game');
 var stats = require('./stats');
 var network = require('./network');
 var sectorTick = require('./sectors');

@@ -67,7 +67,7 @@ class Game {
 	}
 }
 
-module.exports = {
+export default {
 	Game: Game,
 	game: new Game()
 };

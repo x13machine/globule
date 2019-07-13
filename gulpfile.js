@@ -12,13 +12,13 @@ var Promise = require('promise');
 // 		.pipe(gulp.dest('dist/css'));
 // });
 
-gulp.task('webpack', () => {
+gulp.task('webpack', gulp.series(() => {
 	return new Promise((resolve) => {
 		webpack(require('./webpack.config.js'), resolve);
 	});
-});
+}));
 
-gulp.task('watch', () => {
+gulp.task('watch', gulp.series(() => {
 	
 	//watch('src/css/**/*.scss',{ ignoreInitial: false }, () =>{
 	//	gulp.start('css');
@@ -28,6 +28,6 @@ gulp.task('watch', () => {
 		gulp.start('webpack');
 	});
 	return new Promise(() => {});
-});
+}));
 
-gulp.task('default', ['css','webpack']);
+gulp.task('default', gulp.series('webpack'));

@@ -18,7 +18,7 @@ function getKeyByValue(obj,value) {
 	}
 }
 
-module.exports = {
+export default {
 	uuid: uuid,
 	validIP: validIP,
 	validNumber: validNumber,

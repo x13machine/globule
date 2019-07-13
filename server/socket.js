@@ -164,4 +164,4 @@ function chatTick(){
 
 setInterval(chatTick,1000);
 
-module.exports = login;
+export default login;

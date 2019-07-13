@@ -48,4 +48,4 @@ class Glob {
 	}
 }
 
-module.exports = Glob;
+export default Glob;
