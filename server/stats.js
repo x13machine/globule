@@ -1,6 +1,6 @@
 import optCodes from '../shared/optCodes.json';
-var {game} =require('./game');
-var config = require('../config');
+import gameMain from './game';
+import config from '../config';
 
 var state = {
 	leaderboard: [],
@@ -11,23 +11,23 @@ var state = {
 };
 
 function updateRating(u0,u1){
-	var s0 = game.sockets[u0];
-	var s1 = game.sockets[u1];
+	var s0 = gameMain.game.sockets[u0];
+	var s1 = gameMain.game.sockets[u1];
 	if(!s0)return ;
 	
 	if(s1){
 		s0.rating+=s1.rating / 2;
 	}else{
-		s0.rating+=game.state.globs[u1].rating;
+		s0.rating+=gameMain.game.state.globs[u1].rating;
 	} 
 	s0.emit(optCodes['rating'],s0.rating);
 }
 
 function sendStats(){
 	var ratings=[];
-	for(let i in game.sockets){
-		var socket = game.sockets[i];
-		if(!game.state.globs[socket.cli.uuid])continue;
+	for(let i in gameMain.game.sockets){
+		var socket = gameMain.game.sockets[i];
+		if(!gameMain.game.state.globs[socket.cli.uuid])continue;
 		ratings.push({
 			name: socket.cli.name,
 			uuid: socket.cli.uuid,
@@ -49,22 +49,22 @@ function sendStats(){
 			state.board.push([top[i].name,top[i].rating]);
 		}
 		
-		for(let i in game.sockets){
-			game.sockets[i].append(optCodes['leaderboard'],state.board);
+		for(let i in gameMain.game.sockets){
+			gameMain.game.sockets[i].append(optCodes['leaderboard'],state.board);
 		}
 	}
 	
 	var players = ratings.length;
 	
 	if(state.lastPlayers != players){
-		for(let i in game.sockets){
-			game.sockets[i].append(optCodes['players'],players);
+		for(let i in gameMain.game.sockets){
+			gameMain.game.sockets[i].append(optCodes['players'],players);
 		}
 	}
 	
 	for(let i in ratings){
 		var rating = ratings[i];
-		game.sockets[rating.uuid].append(optCodes['rank'],(i*1)+1);
+		gameMain.game.sockets[rating.uuid].append(optCodes['rank'],(i*1)+1);
 	}
 	state.leaderboard = ratings;
 }

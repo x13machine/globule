@@ -1,6 +1,6 @@
-var collision = require('./collision');
-var {game} = require('./game');
-var network = require('./network');
+import collision from './collision';
+import { game } from './game';
+import network from './network';
 
 function sectorTick(){
 	var globs = game.state.globs;

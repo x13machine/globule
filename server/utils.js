@@ -1,4 +1,4 @@
-var crypto = require('crypto');
+import crypto from 'crypto';
 
 function uuid(){
 	return crypto.randomBytes(8).toString('base64').slice(0, -1);
@@ -16,11 +16,12 @@ function getKeyByValue(obj,value) {
 	for( var prop in obj ) {
 		if(obj[ prop ] === value)return prop;
 	}
+
 }
 
 export default {
-	uuid: uuid,
-	validIP: validIP,
-	validNumber: validNumber,
-	getKeyByValue: getKeyByValue
+	uuid,
+	validIP,
+	validNumber,
+	getKeyByValue
 };

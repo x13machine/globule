@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import utils from './utils';
+import autoBind from 'react-autobind';
 
 class menu extends Component {
-	colorPicker = React.createRef();
+	mouseDownCP = false;
 
 	state = {
 		quoteIndex: 0,
@@ -30,6 +31,7 @@ class menu extends Component {
 			let tick = function() {
 				let now = +new Date();
 				if (now > goal){
+					
 					el.setState({quoteOpacity: end});
 					callback();
 					return;
@@ -43,22 +45,20 @@ class menu extends Component {
 		
 		fade(this,this.state.quoteFade,0,1,() => {
 			setTimeout(() => {
-				fade(this,this.state.quoteFade,1,0,() => {
-					this.quote.style.display = 'none';
-					this.showNextQuote();
-				});
+				fade(this,this.state.quoteFade,1,0, this.showNextQuote);
 			},this.state.quoteDelay);
 		});
 	}
 	
 	colorPickerInput(x){
+		x = Math.floor(Math.min(Math.max(x,0), 360));
 		let canvas = this.colorPicker.current;
 		let ctx = canvas.getContext('2d');
 		
 		for(let i=0;i < canvas.width;i++){
 			ctx.beginPath();
 			ctx.rect(i, 0, 1, canvas.height);
-			ctx.fillStyle = utils.a2c(i * 2);
+			ctx.fillStyle = '#' + utils.x2c(i * 2);
 			ctx.fill();
 		}
 
@@ -75,7 +75,10 @@ class menu extends Component {
 	
 	constructor(props){
 		super(props);
-		this.showNextQuote();
+		autoBind(this);
+		this.colorPicker = React.createRef();
+		setImmediate(() => this.colorPickerInput(this.state.color));
+		setTimeout(this.showNextQuote, this.state.quoteDelay);
 	}
 
 	begin(mode){
@@ -83,11 +86,26 @@ class menu extends Component {
 		this.props.begin(mode, this.state.nick, this.state.color);
 	}
 
+	colorUpdate(e){
+		const rect = this.colorPicker.current.getBoundingClientRect();
+		this.colorPickerInput((e.clientX - rect.left) * 2);
+	}
+
+	mouseMove(e){
+		if(this.mouseDownCP)this.colorUpdate(e);
+	}
+
+	mouseDown(e){
+		this.mouseDownCP = true;
+		this.colorUpdate(e);
+	}
+
+
 	render() {
 		return (
-			<div id='home'>
+			<div id='home' style={{display: this.props.show ? 'block' : 'none'}}>
 				<div id='messages'>
-					<div id='not-chrome' style={{display: this.state.isChrome ? 'block': 'none'}}>
+					<div id='not-chrome' style={{display: this.state.isChrome ? 'none': 'block'}}>
 						Hello there. You are not using Google Chrome. Strange things might happen in other browsers. You can download it <a href='https://www.google.com/chrome/browser/'>here</a>  
 					</div>
 				</div>
@@ -95,16 +113,21 @@ class menu extends Component {
 
 				<div id='menu'>
 					<div id='colorDiv'>
-						<canvas id='colorPicker' width='180' height='20' ref={this.colorPicker}></canvas>
+						<canvas id='colorPicker' width='180' height='20'
+							ref={this.colorPicker} 
+							onMouseDown={this.mouseDown}
+							onMouseUp={() => this.mouseDownCP = false}
+							onMouseMove={this.mouseMove}/>
 						<input id='colorNum' type='number' min='0' max='360'
-							value={utils.a2c(this.state.color)}
-							onChange={e => this.setState({color: e.target.value})}/>
+							value={this.state.color}
+							style={{color: '#' + utils.x2c(this.state.color)}}
+							onChange={e => this.colorPickerInput(e.target.value)}/>
 					</div>
 					<h1>Globule</h1>
-					<p class='quotes'>{this.state.quotes[this.state.index]}</p>
+					<p className='quotes'>{this.state.quotes[this.state.index]}</p>
 					
 					<input id='nick' placeholder='Nickname' value={this.state.nick}
-						onkeypress={e => {if(e.keyCode === 13)this.begin('play');}}
+						onKeyPress={e => {if(e.keyCode === 13)this.begin('play');}}
 						onChange={e => this.setState({nick: e.target.value})}/><br/>
 					<input id='play' type='button' value='Play' onClick={() => this.begin('play')}/>
 					<input id='spectate' type='button' value='Spectate' onClick={() => this.begin('spectate')}/>

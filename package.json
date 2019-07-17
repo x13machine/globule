@@ -4,39 +4,45 @@
   "description": "Globule is an online multiplayer game written in javascript/node.js.",
   "main": "server.js",
   "dependencies": {
+    "@babel/cli": "^7.5.0",
+    "@babel/core": "^7.5.4",
+    "@babel/node": "^7.5.0",
     "babel-eslint": "^10.0.2",
     "bison": "^1.1.1",
+    "bson": "^4.0.2",
     "eslint": "^6.0.1",
-    "eslint-plugin-react": "^7.14.2",
     "express": "^4.17.1",
+    "jison": "^0.4.18",
     "jsonschema": "^1.2.4",
     "node-json-minify": "^1.0.0",
+    "react-autobind": "^1.0.6",
     "redux": "^4.0.3",
     "request": "^2.88.0",
     "ws": "^1.1.5"
   },
   "devDependencies": {
-    "@babel/cli": "^7.5.0",
-    "@babel/core": "^7.5.4",
-    "@babel/node": "^7.5.0",
     "@babel/plugin-proposal-class-properties": "^7.5.0",
     "@babel/preset-env": "^7.5.4",
     "@babel/preset-react": "^7.0.0",
+    "auto-bind": "^2.1.0",
     "babel-loader": "^8.0.6",
+    "buffer": "^5.2.1",
+    "eslint-plugin-react": "^7.14.2",
     "gulp": "^4.0.2",
     "gulp-watch": "^5.0.1",
     "react": "^16.8.6",
-    "webpack": "^4.35.3"
+    "react-dom": "^16.8.6",
+    "webpack": "^4.35.3",
+    "webpack-cli": "^3.3.5"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "babel-node server.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/x13machine/globule.git"
   },
-  "author": "",
+  "author": "x13machine",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/x13machine/globule/issues"

@@ -1,8 +1,8 @@
-
 import config from '../config';
 import Glob from './glob';
 import network from './network';
-import {sharedGame} from '../shared/game';
+import sharedGame from '../shared/game';
+import utils from './utils';
 
 class Game extends sharedGame {
 	shoot(playerUUID, direction) {
@@ -127,12 +127,13 @@ class Game extends sharedGame {
 		
 		return cas;
 	}
+
 	constructor(settings){
 		super(settings);
 	}
 }
 
 export default {
-	Game:Game,
+	Game: Game,
 	game: new Game()
 };

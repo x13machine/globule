@@ -1,8 +1,8 @@
-var config = require('../config');
-var {game} = require('./game');
-var stats = require('./stats');
-var network = require('./network');
-var sectorTick = require('./sectors');
+import config from '../config';
+import { game } from './game';
+import stats from './stats';
+import network from './network';
+import sectorTick from './sectors';
 
 setInterval(function(){
 	var sockets = game.sockets;

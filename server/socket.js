@@ -1,8 +1,8 @@
-var optCodes = require('../shared/optCodes');
-var utils = require('./utils');
-var stats = require('./stats');
-var config = require('../config');
-var game = require('./game');
+import optCodes from '../shared/optCodes.json';
+import utils from './utils';
+import stats from './stats';
+import config from '../config';
+import game from './game';
 
 function login(socket,data){
 	if(typeof data != 'object' || typeof data.name != 'string' ||

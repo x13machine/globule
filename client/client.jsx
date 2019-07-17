@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
-import {Game} from '../shared/game';
+import Game from '../shared/game';
 import CanvasRenderer from './canvasRenderer'; 
 import Socket from './socket';
+import autoBind from 'react-autobind';
 
 class Client extends Component {
 	game = new Game();
-	canvas = React.createRef();
-	chatLogs = React.createRef();
+
 
 	state = {
 		connecting: true,
@@ -21,6 +21,7 @@ class Client extends Component {
 		chatInput: '',
 		allowChat: true,
 		showChat: false,
+		info: '',
 		score: 0,
 		msgs: [],
 		msgId: 0
@@ -46,12 +47,13 @@ class Client extends Component {
 		this.socket.on('close', error);
 		this.socket.on('error', error);
 		
-		this.renderer = new CanvasRenderer(this.game, this.socket);
+		this.renderer = new CanvasRenderer(this.canvas.current, this.game, this.socket, info => this.setState({info}));
 		// Start the renderer.
 		this.renderer.render();
 			
-		this.state.on('open',() => {
-			this.state.emit('login', {
+		this.socket.on('open',() => {
+			console.log('open');
+			this.socket.emit('login', {
 				name: name,
 				w: innerWidth,
 				h: innerHeight,
@@ -61,7 +63,7 @@ class Client extends Component {
 		
 		
 		// Get the initial game state
-		this.state.on('start', payload => {
+		this.socket.on('start', payload => {
 			this.setState({connected: true});
 			
 			//clone payload
@@ -79,7 +81,7 @@ class Client extends Component {
 		});
 		
 		// A new client joins.
-		this.state.on('join', function(payload) {
+		this.socket.on('join', function(payload) {
 			if(payload.u === this.game.uuid){
 				this.renderer.zoom = 1;
 				this.setState({
@@ -101,7 +103,7 @@ class Client extends Component {
 			this.game.join(payload);
 		});
 		
-		this.state.on('remap', function(payload) {
+		this.socket.on('remap', function(payload) {
 			if(payload.u in this.game.state.globs[payload.u]){
 				this.game.state.globs[payload.u] = {
 					...this.game.state.globs[payload.u],
@@ -110,7 +112,7 @@ class Client extends Component {
 			}
 		});
 		
-		this.state.on('shoot', function(payload) {
+		this.socket.on('shoot', function(payload) {
 			this.game.state.globs[payload.u] = {
 				...this.game.state.globs[payload.u],
 				...{
@@ -123,32 +125,32 @@ class Client extends Component {
 			};
 		});
 		
-		this.state.on('rating' ,function(payload){
+		this.socket.on('rating' ,function(payload){
 			this.game.rating = payload;
 		});
 		
-		this.state.on('players',function(payload){
+		this.socket.on('players',function(payload){
 			this.renderer.players = payload;
 		});
 		
-		this.state.on('rank',function(payload){
+		this.socket.on('rank',function(payload){
 			this.renderer.rank = payload;
 		});
 		
-		this.state.on('closeMsg',function(closeMsg){
+		this.socket.on('closeMsg',function(closeMsg){
 			this.setState({closeMsg});
 		});
 		
-		this.state.on('leaderboard',(leaderboard) => {
+		this.socket.on('leaderboard', leaderboard => {
 			this.setState(leaderboard);
 		});
 		
-		this.state.on('state',function(){
+		this.socket.on('state',function(){
 			this.game.state.globs = {};
 		});
 		
 		// A client leaves.
-		this.state.on('leave', function(payload) {
+		this.socket.on('leave', function(payload) {
 			this.game.leave(this.game.state.globs[payload]);
 			if(payload === this.game.uuid){
 				let score = Math.round(this.game.rating);
@@ -164,14 +166,14 @@ class Client extends Component {
 			}
 		});
 
-		window.onresize = function() {
+		window.onresize = () => {
 			this.socket.emit('land', {
 				w: innerWidth / this.renderer.zoom,
 				h: innerHeight / this.renderer.zoom
 			});
 		};
 		
-		this.state.on('chat', function(payload) {
+		this.socket.on('chat', function(payload) {
 			this.state.msgs.push({
 				id: this.state.msgId,
 				nick: payload.n || 'NO NAME',
@@ -184,12 +186,12 @@ class Client extends Component {
 			this.chatLogs.current.scrollTop = this.chatLogs.current.scrollHeight;
 		});
 		
-		this.state.on('chatE', function(allow) {
+		this.socket.on('chatE', function(allow) {
 			if(allow)this.state.chatInput = '';
 			this.setState({allowChat: allow});
 		});
 		
-		this.state.on('chatQ', function(payload) {
+		this.socket.on('chatQ', function(payload) {
 			this.setState({chatInput: 'YOU ARE '+ payload[0] + ' OUT OF ' + payload[1]});
 		});
 	}
@@ -197,7 +199,7 @@ class Client extends Component {
 	sendChat(){
 		if(this.state.chatInput === '')return ;
 		
-		this.state.emit('chat', this.state.chatInput);
+		this.socket.emit('chat', this.state.chatInput);
 		this.setState({
 			chatInput: '',
 			allowChat: false
@@ -208,7 +210,7 @@ class Client extends Component {
 		if(this.state.allowChat){
 			this.sendChat();
 		}else{
-			this.state.emit('chatC');
+			this.socket.emit('chatC');
 		}
 	}
 
@@ -259,20 +261,23 @@ class Client extends Component {
 		
 		}
 		
-		this.rendererer.camFit();
+		this.renderer.camFit();
 		
 		this.lx = mx;
 		this.ly = my;
 	}
 
-	constructor(){
-		super();
-		this.state.jump = this.begin;
+	constructor(props){
+		super(props);
+		autoBind(this);
+		this.canvas = React.createRef();
+		this.chatLogs = React.createRef();
+		props.setBegin(this.begin);
 	}
 	
 	render() {
 		return (
-			<div id='game'>
+			<div id='game' style={{display: this.props.show ? 'block' : 'none'}}>
 				<canvas id='canvas'
 					ref={this.canvas}
 					onClick={this.canvasClick}
@@ -281,12 +286,14 @@ class Client extends Component {
 					onMouseMove={this.canvasMouseMove}
 					style={{cursor: this.state.cursor}}/>
 
-				<div id='leaderboard'></div>
-				<div id='info'></div>
+				<table id='leaderboard'>
+
+				</table>
+				<div id='info'>{this.state.info}</div>
 				<div id='deadMenu' style={{display: this.state.deadMenu ? 'block': 'none'}}>
-					<div id='deadClose' onClick={this.setState({deadMenu: false})}>X</div>
+					<div id='deadClose' onClick={() => this.setState({deadMenu: false})}>X</div>
 					<h1 id='deadScore'>{this.state.score}</h1>
-					<button id='respawn' class='button' onClick={() => this.state.emit('join')}>Respawn</button>
+					<button id='respawn' className='button' onClick={() => this.socket.emit('join')}>Respawn</button>
 				</div>
 				<div id='error' style={{display: this.state.fail ? 'block' : 'none'}}>
 					<h1>Error</h1>
@@ -300,17 +307,17 @@ class Client extends Component {
 								<span>{msg.text}</span>
 							</div>)}
 						</div>
-						<input id='chatInput' maxlength='200' disabled={!this.state.allowChat} onKeyPress={e => {if(e.keyCode === 13)endChat();}}/>
-						<button class='button' id='chatSend' onClick={this.chatSendButton}>{this.state.allowChat ? 'SEND' : 'CANCEL'}</button>
+						<input id='chatInput' maxLength='200' disabled={!this.state.allowChat} onKeyPress={e => {if(e.keyCode === 13)this.endChat();}}/>
+						<button className='button' id='chatSend' onClick={this.chatSendButton}>{this.state.allowChat ? 'SEND' : 'CANCEL'}</button>
 					</div>
-					<button type='button' id='chatToggle' class='button'
+					<button type='button' id='chatToggle' className='button'
 						style={{display: this.state.connected ? 'inline-block' : 'none'}}
-						onClick={this.setState({showChat: !this.state.showChat})}>
+						onClick={() => this.setState({showChat: !this.state.showChat})}>
 						{this.showChat ? 'Show Chat' : 'Hide Chat'}
 					</button>
-					<input type='button' id='join' class='button' value='Join' 
+					<input type='button' id='join' className='button' value='Join' 
 						style={{display: this.state.playing ? 'block' : 'none'}}
-						onClick={() => this.state.emit('join')}/>
+						onClick={() => this.socket.emit('join')}/>
 				</div>
 			</div>
 		);

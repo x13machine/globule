@@ -67,7 +67,4 @@ class Game {
 	}
 }
 
-export default {
-	Game: Game,
-	game: new Game()
-};
+export default Game;

@@ -1,4 +1,7 @@
 {
+	"close": -3,
+	"error": -2,	
+	"open": -1,
 	"start":0,
 	"join":1,
 	"leave":2,

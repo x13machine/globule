@@ -1,10 +1,10 @@
 import BISON from 'bison';
-import fs from 'fs';
 import config from './config';
 import express from 'express';
 import optCodes from './shared/optCodes.json';
 import login from './server/socket';
 import http from 'http';
+import gameMain from './server/game';
 
 //init http server
 var app = express();
@@ -69,15 +69,14 @@ wss.on('connection', function(ws) {
 server.listen(process.env.PORT || config.port || 8080, process.env.HOST || config.host || '0.0.0.0');
 
 //load the main game code
-require('./shared/colors');
-var gameMain = require('./server/game');
 gameMain.game = new gameMain.Game(config.game);
 
 //load the server side game code
-require('./server/collision');
-require('./server/tick');
-require('./server/network');
-require('./server/sectors');
+
+// require('./server/collision');
+// require('./server/tick');
+// require('./server/network');
+// require('./server/sectors');
 
 function connection(socket) {
 	if(config.max <= Object.keys(gameMain.game.sockets).length){

@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import Menu from './menu';
 import Client from './client';
+import ReactDOM from 'react-dom';
+import autoBind from 'react-autobind';
 
 class Main extends Component {
 	client = {};
@@ -10,20 +12,24 @@ class Main extends Component {
 	}
 
 	begin(mode, nick, color){
-		this.client.begin(mode, nick, color);
+		this.clientBegin(mode, nick, color);
 		this.setState({tab: 'client'});
 	}
 	
+	constructor(){
+		super();
+		autoBind(this);
+	}
 	render() {
 		return (
-			<div>
-				<Menu show={this.tab === 'menu'} begin={this.begin}/>
-				<Client show={this.tab === 'client'} state={this.state.client}/>
-			</div>
+			<React.Fragment>
+				<Menu show={this.state.tab === 'menu'} begin={this.begin}/>
+				<Client show={this.state.tab === 'client'} setBegin={f => this.clientBegin = f}/>
+			</React.Fragment>
 		);
 	}
 }
 
-React.createElement(<Main/>,document.querySelector('#main'));
+ReactDOM.render(<Main/>, document.querySelector('#main'));
 
 export default Main;
