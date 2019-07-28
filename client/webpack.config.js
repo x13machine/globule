@@ -1,6 +1,6 @@
 
 
-var main = {
+let main = {
 	resolve: {
 		extensions: ['.js','.jsx']
 	},

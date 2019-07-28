@@ -1,8 +1,7 @@
-import optCodes from '../shared/optCodes.json';
 import gameMain from './game';
 import config from '../config';
 
-var state = {
+let state = {
 	leaderboard: [],
 	board: [],
 	lastPlayers: 0,
@@ -11,8 +10,8 @@ var state = {
 };
 
 function updateRating(u0,u1){
-	var s0 = gameMain.game.sockets[u0];
-	var s1 = gameMain.game.sockets[u1];
+	let s0 = gameMain.game.sockets[u0];
+	let s1 = gameMain.game.sockets[u1];
 	if(!s0)return ;
 	
 	if(s1){
@@ -20,17 +19,18 @@ function updateRating(u0,u1){
 	}else{
 		s0.rating+=gameMain.game.state.globs[u1].rating;
 	} 
-	s0.emit(optCodes['rating'],s0.rating);
+	s0.emit('rating',s0.rating);
 }
 
 function sendStats(){
-	var ratings=[];
+	let ratings=[];
 	for(let i in gameMain.game.sockets){
-		var socket = gameMain.game.sockets[i];
+		let socket = gameMain.game.sockets[i];
 		if(!gameMain.game.state.globs[socket.cli.uuid])continue;
 		ratings.push({
 			name: socket.cli.name,
 			uuid: socket.cli.uuid,
+			color: socket.cli.color,
 			rating: Math.round(socket.rating)
 		});
 	}
@@ -39,32 +39,32 @@ function sendStats(){
 		return b.rating - a.rating;
 	});
 	
-	var top = ratings.slice(0, 10);
+	let top = ratings.slice(0, 10);
 	
-	if(JSON.stringify(top) != JSON.stringify(state.leaderboard)){
+	if(JSON.stringify(top) !== JSON.stringify(state.leaderboard)){
 		state.board = [];
 		
 		
-		for(let i in top){
-			state.board.push([top[i].name,top[i].rating]);
-		}
+		top.forEach(player =>{
+			state.board.push([player.name, player.rating, player.color]);
+		});
 		
 		for(let i in gameMain.game.sockets){
-			gameMain.game.sockets[i].append(optCodes['leaderboard'],state.board);
+			gameMain.game.sockets[i].append('leaderboard', state.board);
 		}
 	}
 	
-	var players = ratings.length;
+	let players = ratings.length;
 	
-	if(state.lastPlayers != players){
+	if(state.lastPlayers !== players){
 		for(let i in gameMain.game.sockets){
-			gameMain.game.sockets[i].append(optCodes['players'],players);
+			gameMain.game.sockets[i].append('players', players);
 		}
 	}
 	
 	for(let i in ratings){
-		var rating = ratings[i];
-		gameMain.game.sockets[rating.uuid].append(optCodes['rank'],(i*1)+1);
+		let rating = ratings[i];
+		gameMain.game.sockets[rating.uuid].append('rank',(i*1)+1);
 	}
 	state.leaderboard = ratings;
 }

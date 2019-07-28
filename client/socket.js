@@ -7,8 +7,8 @@ class Socket {
 	messages = [];
 	callbacks = {};
 
-	call(type, payload){
-		let callback = this.callbacks[optCodes[type]];
+	call(code, payload){
+		let callback = this.callbacks[code];
 		if(callback)callback(payload);
 	}
 
@@ -30,13 +30,13 @@ class Socket {
 		this.uri = (location.protocol === 'http:' ? 'ws' : 'wss') + '://' + location.host;
 		this.ws = new WebSocket(this.uri);
 		
-		this.ws.onclose = () => this.call('close');
-		this.ws.onerror = () => this.call('error');
-		this.ws.onopen = () => this.call('open');
+		this.ws.onclose = () => this.call(optCodes['close']);
+		this.ws.onerror = () => this.call(optCodes['error']);
+		this.ws.onopen = () => this.call(optCodes['open']);
 
 		this.ws.onmessage = message => {
-			var payload = bison.decode(message.data);
-			if(!Array.isArray(payload) || payload.length % 2 == 1)return;
+			let payload = bison.decode(message.data);
+			if(!Array.isArray(payload) || payload.length % 2 === 1)return;
 			for(let i=0;i<payload.length;i+=2){
 				this.call(payload[i],payload[i+1]);
 			}

@@ -22,7 +22,7 @@ html, body {
 
 #menu,#error{
 	width: 728pt;
-	height: 150pt;
+	height: 180pt;
 	padding: 20pt;
 	position:fixed; /*it can be fixed too*/
 	left:0; right:0;
@@ -39,10 +39,6 @@ h1{
 	text-shadow: 0 0 25px #F00,0 0 25px #F00;
 	margin:0;
 	font-size: 60px;
-}
-
-.quotes {
-	display: none;
 }
 
 #error{
@@ -172,7 +168,10 @@ a *,a{
 
 #canvas {
 	background:url(../imgs/background.png);
-	background-size: 32px 32px
+	background-size: 32px 32px;
+	position: fixed;
+	top: 0px;
+	left: 0px;
 }
 
 #outer{
@@ -184,18 +183,13 @@ a *,a{
 	position:fixed;
 	top:0px;
 	left:0px;
+	white-space: pre-line;
 }
 
 #online{
 	position:fixed;
 	bottom:0px;
 	right:0px;
-}
-
-#iogames{
-	position:fixed;
-	bottom:0px;
-	left:0px;
 }
 
 #leaderboard{
@@ -224,15 +218,6 @@ a *,a{
 #chatroom *{
 	text-transform: none;
 	color: #FFF;
-}
-
-#chatroom{
-	display: none;
-}
-
-
-#chatToggle{
-	display: none;
 }
 
 #blBox>.button{

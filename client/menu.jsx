@@ -22,7 +22,6 @@ class menu extends Component {
 
 	
 	showNextQuote() {
-		this.state.quoteIndex++;
 		function fade(el,time,start,end,callback) {
 			el.setState({quoteOpacity: start});
 			let begin = +new Date();
@@ -43,10 +42,14 @@ class menu extends Component {
 			tick();
 		}
 		
-		fade(this,this.state.quoteFade,0,1,() => {
-			setTimeout(() => {
-				fade(this,this.state.quoteFade,1,0, this.showNextQuote);
-			},this.state.quoteDelay);
+		fade(this,this.state.quoteFade,1,0,() => {
+			this.setState({
+				quoteIndex: (this.state.quoteIndex + 1) % this.state.quotes.length
+			});
+
+			fade(this,this.state.quoteFade,0,1, () => {
+				setTimeout(this.showNextQuote,this.state.quoteDelay);
+			});
 		});
 	}
 	
@@ -58,7 +61,7 @@ class menu extends Component {
 		for(let i=0;i < canvas.width;i++){
 			ctx.beginPath();
 			ctx.rect(i, 0, 1, canvas.height);
-			ctx.fillStyle = '#' + utils.x2c(i * 2);
+			ctx.fillStyle = utils.x2c(i * 2);
 			ctx.fill();
 		}
 
@@ -120,11 +123,11 @@ class menu extends Component {
 							onMouseMove={this.mouseMove}/>
 						<input id='colorNum' type='number' min='0' max='360'
 							value={this.state.color}
-							style={{color: '#' + utils.x2c(this.state.color)}}
+							style={{color: utils.x2c(this.state.color)}}
 							onChange={e => this.colorPickerInput(e.target.value)}/>
 					</div>
 					<h1>Globule</h1>
-					<p className='quotes'>{this.state.quotes[this.state.index]}</p>
+					<p className='quotes' style={{opacity: this.state.quoteOpacity}}>{this.state.quotes[this.state.quoteIndex]}</p>
 					
 					<input id='nick' placeholder='Nickname' value={this.state.nick}
 						onKeyPress={e => {if(e.keyCode === 13)this.begin('play');}}

@@ -7,47 +7,47 @@ import http from 'http';
 import gameMain from './server/game';
 
 //init http server
-var app = express();
-var server = http.createServer(app);
+let app = express();
+let server = http.createServer(app);
 
 //server files
 app.use(express.static('static'));
 
 //start the websocket server
-var WebSocketServer = require('ws').Server;
+let WebSocketServer = require('ws').Server;
 
-var wss = new WebSocketServer({ 
+let wss = new WebSocketServer({ 
 	server: server
 });
 
 
 wss.on('connection', function(ws) {
-	var socket = {
+	let socket = {
 		messages:[],
 		callbacks:{},
 		ws: ws,
-		call: function(type,data){
-			var callback = socket.callbacks[type];
-			if(callback)callback(data);
+		call: function(code,payload){
+			let callback = socket.callbacks[code];
+			if(callback)callback(payload);
 		},
 		on: function(type,callback){
-			socket.callbacks[type]=callback;
+			socket.callbacks[optCodes[type]]= callback;
 		},
-		append: function(a,b){
+		append: function(type,b){
 			b = b || null;
-			if(a !== undefined)socket.messages = socket.messages.concat([a,b]);
+			if(type !== undefined)socket.messages = socket.messages.concat([optCodes[type],b]);
 		},
-		emit: function(a,b){
+		emit: function(type,b){
 			b = b || null;
 			
-			if(a !== undefined)socket.messages = socket.messages.concat([a,b]);
+			if(type !== undefined)socket.messages = socket.messages.concat([optCodes[type],b]);
 			
-			if(socket.messages.length == 0)return;
-			var data = BISON.encode(socket.messages);
+			if(socket.messages.length === 0)return;
+			let data = BISON.encode(socket.messages);
 			
 			ws.send(data,function(){});
 			
-			var m = socket.messages.slice();
+			let m = socket.messages.slice();
 			socket.messages = [];
 			return m;
 		}
@@ -57,8 +57,8 @@ wss.on('connection', function(ws) {
 	
 	ws.on('message', function(message) {
 		
-		var data = BISON.decode(message);
-		if(!Array.isArray(data) || data.length % 2 == 1)return;
+		let data = BISON.decode(message);
+		if(!Array.isArray(data) || data.length % 2 === 1)return;
 		for(let i=0;i<data.length;i+=2){
 			socket.call(data[i],data[i+1]);
 		}
@@ -74,13 +74,13 @@ gameMain.game = new gameMain.Game(config.game);
 //load the server side game code
 
 // require('./server/collision');
-// require('./server/tick');
+require('./server/tick');
 // require('./server/network');
 // require('./server/sectors');
 
 function connection(socket) {
 	if(config.max <= Object.keys(gameMain.game.sockets).length){
-		socket.emit(optCodes['closeMsg'],'This server currently has to many players online. Please Try again later.');
+		socket.emit('closeMsg', 'This server currently has to many players online. Please Try again later.');
 		socket.ws.close();
 		return;
 	}
@@ -90,13 +90,11 @@ function connection(socket) {
 	socket.lastVisible = [];
 	socket.rating = config.game.playerSize;
 	socket.loaded = false;
-	socket.on(optCodes['login'], (data) => {
-		login(socket,data);
-	});
+	socket.on('login', payload => login(socket,payload));
 }
 
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-process.on('uncaughtException', (err) => {
+process.on('uncaughtException', err => {
 	console.log(err.stack);
 });

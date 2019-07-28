@@ -6,34 +6,33 @@ function cord2cell(cord,size){
 }
 
 function rect2cells(rect,size){
-	var topLeft=cord2cell({
+	let topLeft=cord2cell({
 		x: rect.x,
 		y: rect.y
 	},size);
 	
-	var bottomRight=cord2cell({
+	let bottomRight=cord2cell({
 		x: rect.x + rect.w,
 		y: rect.y + rect.h
 	},size);
 	
-	var cells=[];
+	let cells=[];
 	
 	for(let x=topLeft.x;x<=bottomRight.x;x++){
 		for(let y=topLeft.y;y<=bottomRight.y;y++){
 			cells.push({x:x, y:y});
 		}
 	}
-	
 	return cells;
 }
 
 function globIntersectCell(glob,cell,size){
-	var half = size / 2;
+	let half = size / 2;
 	
-	var cdx = Math.abs(glob.x - (cell.x * size + half));
+	let cdx = Math.abs(glob.x - (cell.x * size + half));
 		
-	var cdy = Math.abs(glob.y - (cell.y * size + half));
-	var halfPlusRadius = half + glob.r;
+	let cdy = Math.abs(glob.y - (cell.y * size + half));
+	let halfPlusRadius = half + glob.r;
 	
 	if (cdx > halfPlusRadius || cdy > halfPlusRadius) return false;
 	

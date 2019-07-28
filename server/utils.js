@@ -9,11 +9,11 @@ function validIP(ip){
 }
 
 function validNumber(v,b,t){
-	return typeof v == 'number' && b <= v && v<=t;
+	return typeof v === 'number' && b <= v && v<=t;
 }
 
 function getKeyByValue(obj,value) {
-	for( var prop in obj ) {
+	for( let prop in obj ) {
 		if(obj[ prop ] === value)return prop;
 	}
 

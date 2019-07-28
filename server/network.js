@@ -1,11 +1,9 @@
 import config from '../config';
-import optCodes from '../shared/optCodes';
-import {game} from '../shared/game';
+import gameMain from './game';
 
 function localBroadcast(cords,type,message,append,loaded){
-	
 	for(let i in cords){
-		var sockets = game.listeners[cords[i].x+'_'+cords[i].y];
+		let sockets = gameMain.game.listeners[cords[i].x+'_'+cords[i].y];
 
 		if(!sockets)return ;
 		for(let z in sockets){
@@ -16,7 +14,7 @@ function localBroadcast(cords,type,message,append,loaded){
 
 function sendJoin(glob,info){
 	info = info || {};
-	var data = {
+	let data = {
 		c: glob.color,
 		u: glob.uuid,
 		X: glob.vx,
@@ -30,26 +28,26 @@ function sendJoin(glob,info){
 	if(glob.name)data.name=glob.name;
 	
 	if(info.socket){
-		(info.append ? info.socket.append : info.socket.emit)(optCodes['join'],data);
+		(info.append ? info.socket.append : info.socket.emit)('join',data);
 		return ;
 	}
 	
-	localBroadcast(glob.toCells(config.game.blockSize),optCodes['join'],data,info.append);
+	localBroadcast(glob.toCells(config.game.blockSize),'join',data,info.append);
 }
 
 function sendRemap(glob){
-	var data = {
+	let data = {
 		u: glob.uuid,
 		x: Math.round(glob.x),
 		y: Math.round(glob.y),
 		r: glob.r,
 	};
 	
-	localBroadcast(glob.toCells(config.game.blockSize),optCodes['remap'],data,true,true);
+	localBroadcast(glob.toCells(config.game.blockSize),'remap',data,true,true);
 }
 
 function sendShoot(glob){
-	var data = {
+	let data = {
 		u: glob.uuid,
 		x: Math.round(glob.x),
 		y: Math.round(glob.y),
@@ -58,12 +56,12 @@ function sendShoot(glob){
 		r: glob.r,
 	};
 	
-	localBroadcast(glob.toCells(config.game.blockSize),optCodes['shoot'],data,true);
+	localBroadcast(glob.toCells(config.game.blockSize),'shoot', data,true);
 }
 
 function sendLeave(data,socket){
-	var uuid = typeof data == 'string' ? data : data.uuid;
-	socket.append(optCodes['leave'],uuid);
+	let uuid = typeof data === 'string' ? data : data.uuid;
+	socket.append('leave',uuid);
 }
 
 export default {

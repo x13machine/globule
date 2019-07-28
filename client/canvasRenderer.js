@@ -1,6 +1,5 @@
 import utils from './utils';
 import autoBind from 'auto-bind';
-
 class CanvasRenderer{
 	mapCord = {
 		x:0,
@@ -83,7 +82,6 @@ class CanvasRenderer{
 	
 	camFit(){
 		//fixes camera position and zoom
-		
 		this.mapCord.x = Math.max(0,Math.min(this.mapCord.x,this.game.settings.width-this.canvas.width/this.zoom));
 		this.mapCord.y = Math.max(0,Math.min(this.mapCord.y,this.game.settings.height-this.canvas.height/this.zoom));
 		if(this.canvas.width>this.game.settings.width*this.zoom){
@@ -97,20 +95,17 @@ class CanvasRenderer{
 	}
 	
 	render() {
-		utils.requestAnimFrame(() => this.render);
-		
+		utils.requestAnimFrame(() => this.render());
 		
 		//compute game state
-		this.canvas.width = innerWidth;
-		this.canvas.height = innerHeight;
-		let delta=this.game.update();
+		let delta = this.game.update();
 	
 		if(delta>this.game.settings.maxDelta){
 			this.socket.emit('state');
 		}
 		
 		let player = this.game.state.globs[this.game.uuid];
-		
+
 		//compute camera
 		this.mapCordUpdate();
 		this.camFit();
@@ -118,44 +113,40 @@ class CanvasRenderer{
 		//display stats
 		let text = `Position: ${Math.round(this.mapCord.x)}, ${Math.round(this.mapCord.y)} \n`;
 			
-		if(player)text += 'Mass: ' + Math.round(player.r.toArea()/100)/10 + '\n';
-		if(this.game.rating)text += `Score: ${Math.round(this.game.rating)}`;
+		if(player)text += `Mass: ${Math.round(player.r.toArea()/100)/10}\n`;
+		if(this.game.rating)text += `Score: ${Math.round(this.game.rating)}\n`;
 		
 		if(this.game.uuid in this.game.state.globs){
-			text += `Rank: ${Math.round(this.rank)} / ${Math.round(this.players)}`;
+			text += `Rank: ${Math.round(this.rank)} out of ${Math.round(this.players)}`;
 		}else{
 			text += `Players: ${Math.round(this.players)}`;
 		}
 
-		this.setInfo(text);
-		//display background
-		this.canvas.style.backgroundPosition = -this.mapCord.x*this.zoom+'px '+-this.mapCord.y*this.zoom+'px';
-		this.canvas.style.backgroundSize = this.backgroundSize.width*this.zoom+'px '+this.backgroundSize.height*this.zoom+'px';
-		
+		this.setState({
+			info: text,
+			backgroundPosition: -this.mapCord.x*this.zoom+'px '+-this.mapCord.y*this.zoom+'px',
+			backgroundSize: this.backgroundSize.width*this.zoom+'px '+this.backgroundSize.height*this.zoom+'px'
+		});
 		
 		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 		let globs = this.game.state.globs;
 		
 		//sort globs to smallest to biggest
-		let keys=Object.keys(globs);
+		let keys = Object.keys(globs);
 		
-		keys.sort((a, b) => {
-			return globs[a].r - globs[b].r;
-		});
+		keys.sort((a, b) => globs[a].r - globs[b].r);
 		
 		// Render the game state
-		for (let i in keys) {
-			this.renderGlob(globs[keys[i]]);
-		}
+		keys.forEach(key => this.renderGlob(globs[key]));
 		
 	}
 	
 	renderGlob(glob){
-		
-		if(!this.globOnScreen(glob))return;
+		let border=3;
+
+		if(!this.globOnScreen(glob) || glob.r <= border)return;
 		
 		//compute rendering data
-		let border=3;
 		
 		let ctx = this.context;
 		let c = glob.color;
@@ -167,47 +158,45 @@ class CanvasRenderer{
 		
 		let sr = glob.r * this.zoom;
 		let sr2 = (glob.r - border) * this.zoom;
-		try{
-			//html5 canvas nonsense
-			ctx.shadowBlur = 0;
-			ctx.beginPath();
-			ctx.arc(renderCord.x, renderCord.y, sr2, 0, Math.TAU, false);
-			ctx.fillStyle = '#000';
-			ctx.fill();
-			
-			let gradient = ctx.createRadialGradient(renderCord.x, renderCord.y, 0, renderCord.x, renderCord.y, sr);
-			gradient.addColorStop(0, 'rgba(0,0,0,0.0)');
-			gradient.addColorStop(1, 'rgba('+~~c[0]+','+~~c[1]+','+~~c[2]+',0.5)');
-			
-			ctx.beginPath();
-			ctx.arc(renderCord.x, renderCord.y, sr2, 0, Math.TAU, false);
-			ctx.fillStyle = gradient;
-			ctx.fill();
-			ctx.lineWidth = border;
-			ctx.shadowColor = 'rgb('+~~c[0]+','+~~c[1]+','+~~c[2]+')';
-			ctx.shadowBlur = 10;
-			ctx.strokeStyle = 'rgb('+~~(c[0]/2)+','+~~(c[1]/2)+','+~~(c[2]/2)+')';
-			ctx.stroke();
-			if (glob.type != 'player') return;
-			let color = glob.uuid == this.game.rating ? '#777' : '#FFF';
-			ctx.font = glob.r / 3 +'px Fjalla One';
-			ctx.fillStyle = color;
-			ctx.textBaseline = 'middle';
-			ctx.textAlign = 'center';
-			ctx.shadowColor = color;
-			ctx.fillText(glob.name || (glob.uuid == this.game.uuid ? 'YOU' : 'NO NAME'), renderCord.x, renderCord.y);
-		}catch(err){
-			console.log(err);
-		}
+		
+		//html5 canvas nonsense
+		ctx.shadowBlur = 0;
+		ctx.beginPath();
+		ctx.arc(renderCord.x, renderCord.y, sr2, 0, Math.TAU, false);
+		ctx.fillStyle = '#000';
+		ctx.fill();
+		
+		let gradient = ctx.createRadialGradient(renderCord.x, renderCord.y, 0, renderCord.x, renderCord.y, sr);
+		gradient.addColorStop(0, 'rgba(0,0,0,0.0)');
+		gradient.addColorStop(1, 'rgba('+~~c[0]+','+~~c[1]+','+~~c[2]+',0.5)');
+		
+		ctx.beginPath();
+		ctx.arc(renderCord.x, renderCord.y, sr2, 0, Math.TAU, false);
+		ctx.fillStyle = gradient;
+		ctx.fill();
+		ctx.lineWidth = border;
+		ctx.shadowColor = 'rgb('+~~c[0]+','+~~c[1]+','+~~c[2]+')';
+		ctx.shadowBlur = 10;
+		ctx.strokeStyle = 'rgb('+~~(c[0]/2)+','+~~(c[1]/2)+','+~~(c[2]/2)+')';
+		ctx.stroke();
+		if (glob.type !== 'player') return;
+		let color = glob.uuid === this.game.uuid ? '#777' : '#FFF';
+		ctx.font = glob.r / 3 +'px Fjalla One';
+		ctx.fillStyle = color;
+		ctx.textBaseline = 'middle';
+		ctx.textAlign = 'center';
+		ctx.shadowColor = color;
+		ctx.fillText(glob.name, renderCord.x, renderCord.y);
+		
 	}
 
 
-	constructor(canvas, game, socket, setInfo) {
+	constructor(canvas, game, socket, setState) {
 		this.canvas = canvas;
 		this.context = canvas.getContext('2d');
 		this.game = game;
 		this.socket = socket;
-		this.setInfo = setInfo;
+		this.setState = setState;
 		autoBind(this);
 	}
 	

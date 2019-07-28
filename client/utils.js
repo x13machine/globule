@@ -31,7 +31,7 @@ function getRandomInt(min, max) {
 
 function componentToHex(c) {
 	let hex = c.toString(16);
-	return hex.length == 1 ? '0' + hex : hex;
+	return hex.length === 1 ? '0' + hex : hex;
 }
 
 function rgbToHex(c) {
@@ -56,11 +56,15 @@ function HSVtoRGB(h, s, v) {
 	case 4: r = t, g = p, b = v; break;
 	case 5: r = v, g = p, b = q; break;
 	}
-	return [Math.floor(r * 255),Math.floor(g * 255),Math.floor(b * 255)]
+	return [Math.floor(r * 255),Math.floor(g * 255),Math.floor(b * 255)];
+}
+
+function x2a(x){
+	return HSVtoRGB(1/360*x,1,1);
 }
 
 function x2c(x){
-	return rgbToHex(HSVtoRGB(1/360*x,1,1));
+	return '#' + rgbToHex(x2a(x));
 }
 
 
@@ -69,5 +73,6 @@ export default {
 	ajaxGet,
 	hexToRgb,
 	getRandomInt,
+	x2a,
 	x2c
 };

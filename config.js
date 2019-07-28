@@ -1,8 +1,8 @@
-var config = {
-	'https':false,
+let config = {
 	'port':5050,
 	'host': '0.0.0.0',
 	'max':1000,
+	'chatSpeed': 500,
 	'game': {
 		'width':10000,
 		'height':10000,

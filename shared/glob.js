@@ -1,3 +1,5 @@
+import collision from './collision';
+
 Math.TAU = Math.PI * 2;
 Number.prototype.toRadius=function(){
 	return Math.sqrt(Math.max(0,this) / Math.PI);
@@ -6,6 +8,7 @@ Number.prototype.toRadius=function(){
 Number.prototype.toArea=function(){
 	return Math.pow(this,2) * Math.PI;
 };
+
 
 class Glob {
 	type = 'glob';
@@ -18,12 +21,22 @@ class Glob {
 		return Math.sqrt(Math.pow(other.x - this.x, 2) + Math.pow(other.y - this.y, 2));
 	}
 	
+	toCells(size){
+		let diameter = this.r * 2;
+		return collision.rect2cells({
+			x: this.x - this.r,
+			y: this.y - this.r,
+			w: diameter,
+			h: diameter
+		},size);
+	}
+	
 	update(delta, settings) {
 	
-		var mass = this.r.toArea();
+		let mass = this.r.toArea();
 		this.x += this.vx * delta;
 		this.y += this.vy * delta;
-		this.r = (mass * Math.pow(0.5, delta / ( (this.type == 'glob' ? settings.globHalfLife : settings.playerHalfLife)  / mass))).toRadius();
+		this.r = (mass * Math.pow(0.5, delta / ( (this.type === 'glob' ? settings.globHalfLife : settings.playerHalfLife)  / mass))).toRadius();
 		
 		if(settings.width<this.x + this.r){
 			this.x = settings.width - this.r;

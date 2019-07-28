@@ -1,27 +1,27 @@
-import optCodes from '../shared/optCodes.json';
 import utils from './utils';
 import stats from './stats';
 import config from '../config';
-import game from './game';
+import gameMain from './game';
+import ug from 'username-generator';
 
 function login(socket,data){
-	if(typeof data != 'object' || typeof data.name != 'string' ||
+	if(typeof data !== 'object' || typeof data.name !== 'string' ||
 	!utils.validNumber(data.w,0,100000) || !utils.validNumber(data.h,0,100000) || !utils.validNumber(data.c,0,360)){
 		socket.ws.close();
 		return ;
 	}
 	
-	var name = data.name.substr(0,30);//limit to 30 characters
 	
-	name = name.replace(/[^ -`]/g, '');//remove non-ascii characters
-	
-	name = name.replace(/(^\s*)|(\s*$)/gi,'').replace(/[ ]{2,}/gi,' ').replace(/\n /,'\n'); //remove whitespace
-	console.log(data.c);
-	var color = utils.HSVtoRGB(1/360*data.c,1,1);
-	var client = {
+	let client = {
 		uuid: utils.uuid(),
-		name: name.toUpperCase(),
-		color: color,
+		name: (data.name === '' ? ug.generateUsername('-') : (data.name
+			.substr(0,30) //limit name to 30 characters
+			.replace(/[^ -~]+/g, '') //remove non-ascii characters
+			.replace(/(^\s*)|(\s*$)/gi,'') //remove whitespace
+			.replace(/[ ]{2,}/gi,' ')
+			.replace(/\n /,'\n')
+		)).toUpperCase(),
+		color: data.c,
 		cam:{
 			x: 0,
 			y: 0,
@@ -31,64 +31,65 @@ function login(socket,data){
 	};
 	
 	socket.cli = client;
-	game.sockets[client.uuid] = socket;
+	gameMain.game.sockets[client.uuid] = socket;
 	
 	console.log('join',new Date(),socket.ws.upgradeReq.connection.remoteAddress,client.name);
+	
 	// When client connects, dump game state
-	
-	socket.append(optCodes['leaderboard'],stats.board);
-	socket.append(optCodes['players'], stats.board.length);
-	
-	socket.emit(optCodes['start'], {
+	socket.append('start', {
 		name:client.name,
 		uuid:client.uuid,
-		settings: game.settings
+		settings: gameMain.game.settings
 	});
+
+	socket.append('leaderboard',stats.board);
+	socket.append('players', stats.board.length);
+	socket.emit();
 	
 	// Client shoots
-	socket.on(optCodes['shoot'], function(data) {
-		if(!game.state.globs[client.uuid] || typeof data != 'object' || !utils.validNumber(data.direction,-100,100))return ;
-		game.shoot(client.uuid, data.direction);
+	socket.on('shoot', function(data) {
+		if(!gameMain.game.state.globs[client.uuid] || typeof data !== 'object' || !utils.validNumber(data.direction,-100,100))return ;
+		gameMain.game.shoot(client.uuid, data.direction);
 	});
 	
 	// Client joins the game as a player
-	socket.on(optCodes['join'], function() {
-		if(game.state.globs[client.uuid])return ;
+	socket.on('join', function() {
+		if(client.uuid in gameMain.game.state.globs)return ;
 		socket.rating = config.game.playerSize;
-		var data = game.append('player',client);
+		let data = gameMain.game.append('player',client);
 		client.cam.x = data.x;
 		client.cam.y = data.y;
-		socket.emit(optCodes['rating'],socket.rating);
+		socket.emit('rating',socket.rating);
 	});
 	
-	socket.on(optCodes['state'], function() {
+	socket.on('state', function() {
 		socket.lastVisible = [];
 		for(let z in socket.prevBlocks){
-			delete game.listeners[socket.prevBlocks[z]][client.uuid]; 
+			delete gameMain.game.listeners[socket.prevBlocks[z]][client.uuid]; 
 		}
 		
 		socket.loaded = false;
 		socket.prevBlocks = [];
 		
-		socket.emit(optCodes['state']);
+		socket.emit('state');
 	});
 	
-	socket.on(optCodes['cam'], function(data) {
-		if(typeof data != 'object' || !utils.validNumber(data.x,0,config.game.width) || !utils.validNumber(data.y,0,config.game.height))return ;
+	socket.on('cam', function(data) {
+		if(typeof data !== 'object' || !utils.validNumber(data.x,0,config.game.width) || !utils.validNumber(data.y,0,config.game.height))return ;
 		client.cam.x = data.x;
 		client.cam.y = data.y;
 	});
 	
-	socket.on(optCodes['land'], function(data) {
+	socket.on('land', function(data) {
 		if(!utils.validNumber(data.w,0,100000) || !utils.validNumber(data.h,0,100000))return;
 		client.cam.w = Math.min(data.w + config.game.addDim, config.game.maxDim);
 		client.cam.h = Math.min(data.h + config.game.addDim, config.game.maxDim);
 	});
 	
 	
-	socket.on(optCodes['chat'], function(data) {
-		if(socket.chatQ || typeof data != 'string' || data == '' || data.length > 200){
-			socket.append(optCodes['chatE'],true);
+	socket.on('chat', function(data) {
+		if(socket.chatQ || typeof data !== 'string' || data === '' || data.length > 200){
+			socket.append('chatE',true);
 			return ;
 		}
 		
@@ -97,71 +98,71 @@ function login(socket,data){
 			text: data
 		});
 		
-		socket.append(optCodes['chatQ'],[chatQ.length,chatQ.length]);
+		socket.append('chatQ',[chatQ.length,chatQ.length]);
 		socket.chatQ = true;
 	});
 	
-	socket.on(optCodes['chatC'], function() {
+	socket.on('chatC', function() {
 		for(let i in chatQ){
-			if(chatQ[i].id == client.uuid)chatQ.splice(i,1);
+			if(chatQ[i].id === client.uuid)chatQ.splice(i,1);
 		}
 		
-		socket.append(optCodes['chatE'],true);
+		socket.append('chatE', true);
 		
 		socket.chatQ = false;
 	});
 	
 	socket.ws.on('close', function() {
 		for(let z in socket.prevBlocks){
-			delete game.listeners[socket.prevBlocks[z]][client.uuid]; 
+			delete gameMain.game.listeners[socket.prevBlocks[z]][client.uuid]; 
 		}
 		
-		if(game.state.globs[client.uuid])game.leave(game.state.globs[client.uuid]);
-		delete game.sockets[client.uuid];
+		if(gameMain.game.state.globs[client.uuid])gameMain.game.leave(gameMain.game.state.globs[client.uuid]);
+		delete gameMain.game.sockets[client.uuid];
 		
 		console.log('leave',new Date(),socket.ws.upgradeReq.connection.remoteAddress,client.name);
 	});
 }
 
 
-var chatQ = [];
+let chatQ = [];
 
 function chatTick(){
-	if(chatQ.length == 0)return ;
+	if(chatQ.length === 0)return ;
 	
-	var mess = chatQ[0];
+	let mess = chatQ[0];
 	
-	if(!game.sockets[mess.id]){
+	if(!gameMain.game.sockets[mess.id]){
 		chatQ.splice(0,1);
 		return ;
 	}
 	
-	for(let i in game.sockets){
-		var socket = game.sockets[i];
-		socket.append(optCodes['chat'],{
-			'n': game.sockets[mess.id].cli.name,
-			'c': game.sockets[mess.id].cli.color,
+	for(let i in gameMain.game.sockets){
+		let socket = gameMain.game.sockets[i];
+		socket.append('chat',{
+			'n': gameMain.game.sockets[mess.id].cli.name,
+			'c': gameMain.game.sockets[mess.id].cli.color,
 			't': mess.text
 		});
 	}
 	
-	game.sockets[mess.id].append(optCodes['chatE'],true);
-	game.sockets[mess.id].chatQ = false;
+	gameMain.game.sockets[mess.id].append('chatE', true);
+	gameMain.game.sockets[mess.id].chatQ = false;
 	
 	chatQ.splice(0,1);
 	
 	for(let i in chatQ){
 		let mess = chatQ[i];
-		let socket = game.sockets[mess.id];
+		let socket = gameMain.game.sockets[mess.id];
 		if(!socket){
 			chatQ.splice(i,1);
 			continue;
 		}
 		
-		socket.append(optCodes['chatQ'],[i*1 + 1,chatQ.length]);
+		socket.append('chatQ',[i*1 + 1,chatQ.length]);
 	}
 }
 
-setInterval(chatTick,1000);
+setInterval(chatTick,config.chatSpeed);
 
 export default login;
