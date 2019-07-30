@@ -2,7 +2,11 @@
   "name": "globule",
   "version": "1.0.0",
   "description": "Globule is an online multiplayer game written in javascript/node.js.",
-  "main": "server.js",
+	"main": "server.js",
+	"engines": {
+		"node": "^12.6.0",
+		"npm": "^6.9.0"
+	},
   "dependencies": {
     "@babel/cli": "^7.5.0",
     "@babel/core": "^7.5.4",
